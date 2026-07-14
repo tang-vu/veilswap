@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Hardhat
+artifacts/
+cache/
+types/
+
+# Environment — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+app/dist/
+app/node_modules/
+
+# Editor/OS noise
+.DS_Store
+Thumbs.db

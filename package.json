@@ -1,0 +1,33 @@
+{
+  "name": "veilswap",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Confidential batch-swap and payment layer on iExec Nox, settling net residuals through public Uniswap V3 on Ethereum Sepolia",
+  "scripts": {
+    "build": "tsc --build",
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:sepolia": "hardhat run scripts/deploy-veilswap-sepolia.ts --network sepolia",
+    "keeper:once": "tsx keeper/settle-once.ts",
+    "keeper:watch": "tsx keeper/watch-epochs.ts"
+  },
+  "dependencies": {
+    "@iexec-nox/nox-protocol-contracts": "^0.2.4",
+    "@openzeppelin/contracts": "^5.4.0",
+    "viem": "^2.46.3"
+  },
+  "devDependencies": {
+    "@iexec-nox/handle": "latest",
+    "@iexec-nox/nox-hardhat-plugin": "latest",
+    "@nomicfoundation/hardhat-node-test-runner": "^3.0.17",
+    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.7",
+    "@tsconfig/node22": "^22.0.2",
+    "@types/node": "^22.11.0",
+    "dotenv": "^16.4.5",
+    "hardhat": "^3.9.0",
+    "tsx": "^4.19.0",
+    "typescript": "~5.8.0"
+  },
+  "packageManager": "pnpm@11.13.0+sha512.88d94724d8f2e6c186744a5584c6e59ecac869ec7ba15e9cb4cd628e8dc7066820b2481d8ee3b51ea8da323a7378068aa58c556a3720d32b7c20a051d088363a"
+}
