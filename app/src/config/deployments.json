@@ -1,0 +1,22 @@
+{
+  "chainId": 11155111,
+  "network": "sepolia",
+  "veilSwapPair": "",
+  "tokenA": {
+    "address": "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
+    "symbol": "WETH",
+    "decimals": 18
+  },
+  "tokenB": {
+    "address": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+    "symbol": "USDC",
+    "decimals": 6
+  },
+  "uniswapV3Pool": "0x3289680dd4d6c10bb19b899729cda5eef58aeff1",
+  "swapRouter02": "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E",
+  "poolFee": 500,
+  "noxCompute": "0x24Ef36Ec5b626D7DCD09a98F3083c2758F0F77bF",
+  "epochDurationSeconds": 300,
+  "deployedAtBlock": 0,
+  "deployTxHash": ""
+}
