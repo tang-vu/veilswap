@@ -1,0 +1,31 @@
+# Optional: keeps VeilSwap epochs settling even when nobody runs a local keeper.
+# Requires repository secrets:
+#   KEEPER_PRIVATE_KEY      funded Sepolia account (liveness only, no authority)
+#   VEILSWAP_PAIR_ADDRESS   deployed VeilSwapPair
+#   SEPOLIA_RPC_URL         (optional) custom RPC endpoint
+name: keeper-cron
+
+on:
+  schedule:
+    - cron: "*/10 * * * *" # every 10 minutes
+  workflow_dispatch: {}
+
+jobs:
+  settle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # skipTestOverride is irrelevant here; compile only produces the ABI the keeper loads.
+      - run: pnpm hardhat compile
+      - run: pnpm keeper:once
+        env:
+          KEEPER_PRIVATE_KEY: ${{ secrets.KEEPER_PRIVATE_KEY }}
+          VEILSWAP_PAIR_ADDRESS: ${{ secrets.VEILSWAP_PAIR_ADDRESS }}
+          SEPOLIA_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL }}
