@@ -43,11 +43,21 @@ amounts, minOut, balances, who-traded-what. k-anonymity ∝ intents/epoch.
 
 | # | Phase | Status |
 |---|---|---|
-| 1 | [Scaffold + contracts + unit tests](phase-01-scaffold-contracts-tests.md) | pending |
-| 2 | [Keeper settlement service](phase-02-keeper-settlement-service.md) | pending |
-| 3 | [Frontend dark-pool app](phase-03-frontend-dark-pool-app.md) | pending |
-| 4 | [Docs + feedback.md](phase-04-docs-and-feedback.md) | pending |
-| 5 | [Sepolia deploy + E2E rehearsal](phase-05-deploy-and-e2e-rehearsal.md) | pending |
+| 1 | [Scaffold + contracts + unit tests](phase-01-scaffold-contracts-tests.md) | ✅ done — 19/19 tests green on real local Nox stack (run inside WSL; see notes) |
+| 2 | [Keeper settlement service](phase-02-keeper-settlement-service.md) | ✅ done — typechecked; live run pending deployment |
+| 3 | [Frontend dark-pool app](phase-03-frontend-dark-pool-app.md) | ✅ code-complete — builds clean; visual pass pending deployed contracts |
+| 4 | [Docs + feedback.md](phase-04-docs-and-feedback.md) | ✅ drafted — README/ARCHITECTURE/DEMO_SCRIPT/feedback written; tx hashes pending E2E |
+| 5 | [Sepolia deploy + E2E rehearsal](phase-05-deploy-and-e2e-rehearsal.md) | ⏳ BLOCKED on user: funded Sepolia key(s) + Etherscan API key |
+
+## Build notes (2026-07-14)
+
+- This machine runs Docker Engine inside WSL (no Docker Desktop) → the Nox plugin's
+  named-pipe check fails on Windows. Tests run in WSL: repo synced to `~/veilswap`
+  (root), `pnpm hardhat test` there. Node 22 installed in WSL for this.
+- Gas (2-intent epoch, local): submit ~575k, lock ~1.09M, settle ~709k → maxIntents=8 at deploy.
+- Key SDK finding (in feedback.md #9): input-proof owner comes from `getAddresses()[0]`,
+  not the bound account — wrap wallet clients so `getAddresses()` returns only the
+  bound account (done in tests + app).
 
 Dependencies: 1 → 2 → 5; 3 parallel after 1; 4 incremental throughout.
 feedback.md seeded in phase 1, updated every phase (judged deliverable).
