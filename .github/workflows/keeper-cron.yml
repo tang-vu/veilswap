@@ -3,6 +3,8 @@
 #   KEEPER_PRIVATE_KEY      funded Sepolia account (liveness only, no authority)
 #   VEILSWAP_PAIR_ADDRESS   deployed VeilSwapPair
 #   SEPOLIA_RPC_URL         (optional) custom RPC endpoint
+# When the required secrets are absent the run skips cleanly (green) instead of
+# failing — this cron is a backup liveness path, not a required CI gate.
 name: keeper-cron
 
 on:
@@ -15,16 +17,36 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      # Secrets aren't visible in step `if:` conditions directly, so expose a
+      # boolean output and gate the real work on it.
+      - name: Check keeper secrets
+        id: guard
+        env:
+          KEEPER_PRIVATE_KEY: ${{ secrets.KEEPER_PRIVATE_KEY }}
+          VEILSWAP_PAIR_ADDRESS: ${{ secrets.VEILSWAP_PAIR_ADDRESS }}
+        run: |
+          if [ -n "$KEEPER_PRIVATE_KEY" ] && [ -n "$VEILSWAP_PAIR_ADDRESS" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::keeper-cron secrets not configured (KEEPER_PRIVATE_KEY / VEILSWAP_PAIR_ADDRESS) — skipping settlement pass."
+          fi
+      - if: steps.guard.outputs.configured == 'true'
+        uses: actions/checkout@v4
+      - if: steps.guard.outputs.configured == 'true'
+        uses: pnpm/action-setup@v4
+      - if: steps.guard.outputs.configured == 'true'
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - if: steps.guard.outputs.configured == 'true'
+        run: pnpm install --frozen-lockfile
       # skipTestOverride is irrelevant here; compile only produces the ABI the keeper loads.
-      - run: pnpm hardhat compile
-      - run: pnpm keeper:once
+      - if: steps.guard.outputs.configured == 'true'
+        run: pnpm hardhat compile
+      - if: steps.guard.outputs.configured == 'true'
+        run: pnpm keeper:once
         env:
           KEEPER_PRIVATE_KEY: ${{ secrets.KEEPER_PRIVATE_KEY }}
           VEILSWAP_PAIR_ADDRESS: ${{ secrets.VEILSWAP_PAIR_ADDRESS }}
