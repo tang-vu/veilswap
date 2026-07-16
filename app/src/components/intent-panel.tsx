@@ -53,11 +53,12 @@ export function IntentPanel() {
     }
   }, [amount, tokenIn]);
 
-  // Suggested limit: spot minus 0.8% (the contract's slippage bound is 0.5%,
-  // leaving headroom so a fresh quote doesn't immediately exclude the intent).
+  // Suggested limit: spot minus 1.5%. The contract guarantees lock-price minus
+  // 0.5%; the extra percent absorbs pool drift between quoting and the epoch
+  // lock so the intent isn't excluded by a marginal move.
   const suggestedMinOut = useMemo(() => {
     if (!quote || parsedAmount === null || parsedAmount === 0n) return null;
-    return (parsedAmount * quote * 9920n) / (10n ** 18n * 10000n);
+    return (parsedAmount * quote * 9850n) / (10n ** 18n * 10000n);
   }, [quote, parsedAmount]);
 
   const parsedMinOut = useMemo(() => {

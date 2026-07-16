@@ -125,7 +125,11 @@ async function send(
     args: (request.args ?? []) as unknown[],
     account: walletClient.account!,
   } as never);
-  const hash = await walletClient.writeContract(prepared as never);
+  // Gas cushion: pool/Nox state can shift between estimation and execution
+  // (observed: settle OOG when another trade moved the pool mid-flight).
+  const preparedWithGas = { ...(prepared as Record<string, unknown>) } as { gas?: bigint };
+  if (preparedWithGas.gas) preparedWithGas.gas = (preparedWithGas.gas * 15n) / 10n;
+  const hash = await walletClient.writeContract(preparedWithGas as never);
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   if (receipt.status !== "success") throw new Error(`${label} reverted: ${hash}`);
   hashes.push([label, hash]);
@@ -166,19 +170,20 @@ console.log(`Actors — keeper ${keeper.account!.address}, alice ${alice.account
 console.log(`Fresh exit address (never funded): ${freshExit}`);
 
 // ============ price-derived demo sizing ============
-const [sqrtPriceX96] = await publicClient.readContract({ address: POOL, abi: POOL_ABI, functionName: "slot0" });
-const priceX192 = sqrtPriceX96 * sqrtPriceX96;
-// token0 = USDC, token1 = WETH for this pool: aToB (USDC per WETH-wei, 1e18) = zeroFor1.
-const usdcPerWethE18 = ((1n << 192n) * 10n ** 18n) / priceX192;
-const wethPerUsdcE18 = (priceX192 * 10n ** 18n) >> 192n;
-const usdcPerWeth = Number(usdcPerWethE18 * 10n ** 12n) / 1e18; // full-unit price for logging
-console.log(`Pool spot: 1 WETH ≈ ${usdcPerWeth.toFixed(0)} USDC`);
-
 const ALICE_WETH_IN = 10n ** 16n; // Alice sells 0.01 WETH
 const BOB_USDC_IN = 100n * 10n ** 6n; // Bob sells 100 USDC
-// Suggested limits: spot − 0.8% (contract guarantees spot − 0.5%).
-const aliceMinOut = (ALICE_WETH_IN * usdcPerWethE18 * 9920n) / (10n ** 18n * 10_000n);
-const bobMinOut = (BOB_USDC_IN * wethPerUsdcE18 * 9920n) / (10n ** 18n * 10_000n);
+
+/** Fresh spot quote from the pool; called right before it is used so testnet
+ *  price drift can't silently invalidate the derived limits. */
+async function spotQuote() {
+  const [sqrtPriceX96] = await publicClient.readContract({ address: POOL, abi: POOL_ABI, functionName: "slot0" });
+  const priceX192 = sqrtPriceX96 * sqrtPriceX96;
+  // token0 = USDC, token1 = WETH for this pool: aToB (USDC per WETH-wei, 1e18) = zeroFor1.
+  const usdcPerWethE18 = ((1n << 192n) * 10n ** 18n) / priceX192;
+  const wethPerUsdcE18 = (priceX192 * 10n ** 18n) >> 192n;
+  console.log(`Pool spot: 1 WETH ≈ ${(Number(usdcPerWethE18 * 10n ** 12n) / 1e18).toFixed(0)} USDC`);
+  return { usdcPerWethE18, wethPerUsdcE18 };
+}
 
 // ============ 0. one-time demo funding ============
 async function fundDemoWallets() {
@@ -192,6 +197,7 @@ async function fundDemoWallets() {
     const bobWethIn = 8n * 10n ** 15n; // 0.008 ETH ≈ enough for ~130+ USDC at spot
     await send(bob, "bob wraps 0.008 ETH → WETH", { address: WETH, abi: WETH_ABI as unknown as Abi, functionName: "deposit", value: bobWethIn });
     await send(bob, "bob approves router", { address: WETH, abi: WETH_ABI as unknown as Abi, functionName: "approve", args: [ROUTER, bobWethIn] });
+    const { usdcPerWethE18 } = await spotQuote();
     const minUsdc = (bobWethIn * usdcPerWethE18 * 9800n) / (10n ** 18n * 10_000n);
     await send(bob, "bob swaps WETH → USDC (demo funding)", {
       address: ROUTER,
@@ -240,6 +246,14 @@ async function main() {
   await fundDemoWallets();
   const epochId = await ensureFreshEpoch();
   console.log(`Demo epoch: #${epochId}`);
+
+  // Limits derived from a FRESH quote: spot − 1.5%, comfortably below the
+  // contract's lock-time bound of lockPrice − 0.5% even if the testnet pool
+  // drifts ~1% before the deadline. (Run 1 lesson: 0.8% margin was eaten by a
+  // 1.65% drift and the intent was — correctly — excluded and refunded.)
+  const { usdcPerWethE18, wethPerUsdcE18 } = await spotQuote();
+  const aliceMinOut = (ALICE_WETH_IN * usdcPerWethE18 * 9850n) / (10n ** 18n * 10_000n);
+  const bobMinOut = (BOB_USDC_IN * wethPerUsdcE18 * 9850n) / (10n ** 18n * 10_000n);
 
   // Deposits (the last public trace of each user).
   await send(alice, "alice approves WETH for VeilSwap", { address: WETH, abi: WETH_ABI as unknown as Abi, functionName: "approve", args: [PAIR, ALICE_WETH_IN] });
