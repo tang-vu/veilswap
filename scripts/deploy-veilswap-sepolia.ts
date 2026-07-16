@@ -20,7 +20,11 @@ const deployments = JSON.parse(readFileSync(deploymentsPath, "utf8"));
 
 const EPOCH_DURATION = BigInt(deployments.epochDurationSeconds ?? 300); // 5 min demo epochs
 const MAX_INTENTS = 8; // calibrated from local gas: lock ≈ 0.5M gas per intent
-const SLIPPAGE_BPS = 50; // 0.5% worst-case bound for eligibility + amountOutMinimum
+// Worst-case bound for eligibility + amountOutMinimum. Tuned per venue: the
+// Sepolia WETH/USDC pool drifts ~1.7% within a 5-minute epoch (observed), so a
+// mainnet-style 50 bps bound makes settlement lose the race against noise. 3%
+// keeps the same exactness guarantees, just with a wider tolerance band.
+const SLIPPAGE_BPS = 300;
 const CANCEL_GRACE = 1800n; // 30 min before a stuck epoch can be cancelled
 
 const connection = await network.connect("sepolia");

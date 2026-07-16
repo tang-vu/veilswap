@@ -120,16 +120,18 @@ async function send(
   label: string,
   request: { address: Address; abi: Abi; functionName: string; args?: readonly unknown[]; value?: bigint }
 ) {
-  const { request: prepared } = await publicClient.simulateContract({
+  const callArgs = {
     ...request,
     args: (request.args ?? []) as unknown[],
     account: walletClient.account!,
-  } as never);
-  // Gas cushion: pool/Nox state can shift between estimation and execution
-  // (observed: settle OOG when another trade moved the pool mid-flight).
-  const preparedWithGas = { ...(prepared as Record<string, unknown>) } as { gas?: bigint };
-  if (preparedWithGas.gas) preparedWithGas.gas = (preparedWithGas.gas * 15n) / 10n;
-  const hash = await walletClient.writeContract(preparedWithGas as never);
+  };
+  const { request: prepared } = await publicClient.simulateContract(callArgs as never);
+  // Explicit gas at 2x the estimate: pool/Nox state can shift between
+  // estimation and execution (observed: settle OOG'd at the estimated limit
+  // when another trade moved the pool mid-flight). simulateContract does NOT
+  // set `gas` on its returned request, so this must be estimated separately.
+  const gasEstimate = await publicClient.estimateContractGas(callArgs as never);
+  const hash = await walletClient.writeContract({ ...(prepared as object), gas: gasEstimate * 2n } as never);
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   if (receipt.status !== "success") throw new Error(`${label} reverted: ${hash}`);
   hashes.push([label, hash]);
@@ -247,13 +249,13 @@ async function main() {
   const epochId = await ensureFreshEpoch();
   console.log(`Demo epoch: #${epochId}`);
 
-  // Limits derived from a FRESH quote: spot − 1.5%, comfortably below the
-  // contract's lock-time bound of lockPrice − 0.5% even if the testnet pool
-  // drifts ~1% before the deadline. (Run 1 lesson: 0.8% margin was eaten by a
-  // 1.65% drift and the intent was — correctly — excluded and refunded.)
+  // Limits derived from a FRESH quote: spot − 4%, below the contract's
+  // lock-time bound of lockPrice − 3% with ~1% of drift headroom. (Run 1
+  // lesson: a 0.8% margin was eaten by a 1.65% testnet drift and the intent
+  // was — correctly — excluded and refunded.)
   const { usdcPerWethE18, wethPerUsdcE18 } = await spotQuote();
-  const aliceMinOut = (ALICE_WETH_IN * usdcPerWethE18 * 9850n) / (10n ** 18n * 10_000n);
-  const bobMinOut = (BOB_USDC_IN * wethPerUsdcE18 * 9850n) / (10n ** 18n * 10_000n);
+  const aliceMinOut = (ALICE_WETH_IN * usdcPerWethE18 * 9600n) / (10n ** 18n * 10_000n);
+  const bobMinOut = (BOB_USDC_IN * wethPerUsdcE18 * 9600n) / (10n ** 18n * 10_000n);
 
   // Deposits (the last public trace of each user).
   await send(alice, "alice approves WETH for VeilSwap", { address: WETH, abi: WETH_ABI as unknown as Abi, functionName: "approve", args: [PAIR, ALICE_WETH_IN] });

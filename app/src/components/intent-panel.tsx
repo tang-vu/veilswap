@@ -53,12 +53,13 @@ export function IntentPanel() {
     }
   }, [amount, tokenIn]);
 
-  // Suggested limit: spot minus 1.5%. The contract guarantees lock-price minus
-  // 0.5%; the extra percent absorbs pool drift between quoting and the epoch
-  // lock so the intent isn't excluded by a marginal move.
+  // Suggested limit: spot minus 4%. The demo deployment guarantees lock-price
+  // minus 3% (slippageBps tuned to this testnet pool's ~1.7%/5min drift); the
+  // extra percent absorbs drift between quoting and the epoch lock so the
+  // intent isn't excluded by a marginal move.
   const suggestedMinOut = useMemo(() => {
     if (!quote || parsedAmount === null || parsedAmount === 0n) return null;
-    return (parsedAmount * quote * 9850n) / (10n ** 18n * 10000n);
+    return (parsedAmount * quote * 9600n) / (10n ** 18n * 10000n);
   }, [quote, parsedAmount]);
 
   const parsedMinOut = useMemo(() => {
