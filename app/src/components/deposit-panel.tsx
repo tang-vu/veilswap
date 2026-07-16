@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
-import { useAccount, usePublicClient, useReadContract, useWalletClient } from "wagmi";
+import { useAccount, useBalance, usePublicClient, useReadContract, useWalletClient } from "wagmi";
 import { useQueryClient } from "@tanstack/react-query";
-import { ERC20_ABI, ETHERSCAN_BASE, PAIR_ADDRESS, TOKEN_A, TOKEN_B } from "../config/veilswap";
+import { ERC20_ABI, ETHERSCAN_BASE, PAIR_ADDRESS, TOKEN_A, TOKEN_B, WETH_DEPOSIT_ABI } from "../config/veilswap";
 import { formatToken, parseToken } from "../lib/format";
 import { usePairWrite } from "../hooks/use-pair-write";
 import { TokenSelect } from "./token-select";
@@ -42,6 +42,35 @@ export function DepositPanel() {
   });
 
   const needsApproval = parsed !== null && parsed > 0n && (allowance ?? 0n) < parsed;
+
+  // Judge onboarding: if the wallet lacks WETH but holds ETH, offer in-app wrapping.
+  const { data: ethBalance } = useBalance({ address, query: { refetchInterval: 15000 } });
+  const [wrapping, setWrapping] = useState(false);
+  const needsWrap =
+    token.address === TOKEN_A.address &&
+    parsed !== null &&
+    parsed > 0n &&
+    (walletBalance ?? 0n) < parsed &&
+    (ethBalance?.value ?? 0n) > parsed;
+
+  async function wrapEth() {
+    if (!walletClient?.account || !publicClient || parsed === null) return;
+    setWrapping(true);
+    try {
+      const hash = await walletClient.writeContract({
+        address: TOKEN_A.address,
+        abi: WETH_DEPOSIT_ABI,
+        functionName: "deposit",
+        value: parsed,
+        account: walletClient.account,
+        chain: walletClient.chain,
+      });
+      await publicClient.waitForTransactionReceipt({ hash });
+      await queryClient.invalidateQueries();
+    } finally {
+      setWrapping(false);
+    }
+  }
 
   async function approve() {
     if (!walletClient?.account || !publicClient || parsed === null) return;
@@ -87,7 +116,11 @@ export function DepositPanel() {
         </span>
         {parsed === null && <span className="error-text">invalid amount</span>}
       </div>
-      {needsApproval ? (
+      {needsWrap ? (
+        <button className="btn btn-primary" onClick={wrapEth} disabled={wrapping}>
+          {wrapping ? "wrapping…" : `wrap ${amount} ETH → WETH first`}
+        </button>
+      ) : needsApproval ? (
         <button className="btn btn-primary" onClick={approve} disabled={approving}>
           {approving ? "approving…" : `approve ${token.symbol}`}
         </button>

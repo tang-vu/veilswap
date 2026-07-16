@@ -5,6 +5,7 @@ import { parseAbiItem } from "viem";
 import deployments from "../config/deployments.json";
 import { ETHERSCAN_BASE, PAIR_ABI, PAIR_ADDRESS, TOKEN_A, TOKEN_B } from "../config/veilswap";
 import { formatCountdown, formatToken } from "../lib/format";
+import { EpochActions } from "./epoch-actions";
 
 const PHASE_NAMES = ["—", "OPEN", "LOCKED", "SETTLED", "CANCELLED"] as const;
 
@@ -73,6 +74,16 @@ export function EpochDashboard() {
           <span className="stat-value">none — count only</span>
         </div>
       </div>
+      {epochId !== undefined && (
+        <EpochActions
+          epochId={epochId}
+          phase={phase}
+          deadline={deadline}
+          intentCount={intentCount}
+          maxIntents={Number(maxIntents ?? 0)}
+          now={now}
+        />
+      )}
       {epochId !== undefined && epochId > 1n && <LastSettlement epochId={epochId - 1n} />}
     </div>
   );

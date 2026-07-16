@@ -12,9 +12,9 @@ export const wagmiConfig = getDefaultConfig({
   projectId: (import.meta.env.VITE_WALLETCONNECT_PROJECT_ID as string | undefined) ?? "veilswap-local-demo",
   chains: [sepolia],
   transports: {
-    [sepolia.id]: http(
-      (import.meta.env.VITE_SEPOLIA_RPC_URL as string | undefined) ?? "https://ethereum-sepolia-rpc.publicnode.com"
-    ),
+    // drpc: free tier supports the eth_getLogs range queries the dashboard
+    // uses to link settlement transactions (publicnode gates those).
+    [sepolia.id]: http((import.meta.env.VITE_SEPOLIA_RPC_URL as string | undefined) ?? "https://sepolia.drpc.org"),
   },
   ssr: false,
 });

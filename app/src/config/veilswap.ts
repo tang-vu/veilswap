@@ -56,6 +56,11 @@ export const ERC20_ABI = [
   },
 ] as const;
 
+/** WETH9 deposit() — lets judges wrap Sepolia ETH into WETH without leaving the app. */
+export const WETH_DEPOSIT_ABI = [
+  { type: "function", name: "deposit", stateMutability: "payable", inputs: [], outputs: [] },
+] as const;
+
 /** Minimal Uniswap V3 pool surface (spot quote for the intent form). */
 export const POOL_ABI = [
   {

@@ -6,6 +6,7 @@ import { DepositPanel } from "./components/deposit-panel";
 import { IntentPanel } from "./components/intent-panel";
 import { TransferPanel } from "./components/transfer-panel";
 import { WithdrawPanel } from "./components/withdraw-panel";
+import { HowItWorksPanel } from "./components/how-it-works-panel";
 import { PAIR_ADDRESS } from "./config/veilswap";
 
 export default function App() {
@@ -35,13 +36,15 @@ export default function App() {
           {isConnected ? <IntentPanel /> : <ConnectHint />}
         </section>
         <section className="column">
-          {isConnected && (
+          {isConnected ? (
             <>
               <BalancesPanel />
               <DepositPanel />
               <TransferPanel />
               <WithdrawPanel />
             </>
+          ) : (
+            <HowItWorksPanel />
           )}
         </section>
       </main>

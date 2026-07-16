@@ -8,6 +8,12 @@ inside Intel TDX enclaves, and opposing flow is netted entirely off the public
 market. Each epoch, only the net residual executes as **one aggregate swap** on
 the real, unmodified Uniswap V3 pool on Ethereum Sepolia.
 
+![VeilSwap dashboard](docs/assets/veilswap-dashboard.png)
+
+**Try it live: [tang-vu.github.io/veilswap](https://tang-vu.github.io/veilswap/)** — connect any
+Sepolia wallet; the app can wrap faucet ETH into WETH for you, and even lets you drive epoch
+settlement yourself (it's permissionless — the dashboard doubles as a keeper).
+
 Observers see a contract trade with Uniswap once per epoch. They never see who
 traded, how much, or which way — and volume that nets internally never touches
 the public chain at all. Encrypted balances double as a private payment rail
@@ -127,6 +133,13 @@ Bob's to exactly 0.004218864278420221 WETH.
 
 Reproduce it yourself: `pnpm tsx scripts/e2e-demo-rehearsal.ts` (needs the
 funded wallets from `.env`).
+
+## Provenance
+
+Everything in this repository was designed and built from scratch during the
+iExec WTF Hackathon Summer Edition (July 2026). External code enters only as
+standard dependencies: the iExec Nox packages, OpenZeppelin, Uniswap's deployed
+contracts (used on-chain, unmodified), and the usual React/viem toolchain.
 
 ## Tests
 

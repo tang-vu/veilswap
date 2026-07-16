@@ -69,7 +69,15 @@ Sepolia). Ordered roughly by impact. Updated incrementally throughout the build.
    on the `encryptInput`/`fromExternal` pages, and export the NoxCompute error
    ABI so clients can decode reverts. Workaround we ship: wrap the wallet so
    `getAddresses()` returns only the bound account.
-10. **Handle branded types vs raw `bytes32`.** Contract views return handles as plain
+10. **`@iexec-nox/handle` hard-requires `ethers` even for viem-only apps.** The
+    package index re-exports `createEthersHandleClient`, so bundlers must
+    resolve `ethers` no matter which factory you use. In a Vite app without
+    ethers installed this fails *silently*: the module graph never evaluates,
+    React never mounts, and you get a black screen with zero console errors
+    (the failure only surfaces when dynamically importing the module by hand).
+    → Make the ethers/viem factories subpath exports (`@iexec-nox/handle/viem`)
+    or lazy-import them, so each wallet stack only pulls its own peer.
+11. **Handle branded types vs raw `bytes32`.** Contract views return handles as plain
    hex through viem, but SDK methods want `Handle<T>` branded types — every read→decrypt
    round-trip needs an `as` cast. → Export a `toHandle<T>(hex)` helper from
    `@iexec-nox/handle`.
