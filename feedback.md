@@ -74,10 +74,21 @@ Sepolia). Ordered roughly by impact. Updated incrementally throughout the build.
    round-trip needs an `as` cast. → Export a `toHandle<T>(hex)` helper from
    `@iexec-nox/handle`.
 
+## Live Sepolia observations (answering some of our own questions)
+
+- **Runner latency on Sepolia is impressive**: epoch sums (10+ chained ops per
+  intent) were publicly decryptable essentially as soon as the lock tx was
+  mined; one balance decrypt needed a single 15 s retry across our whole E2E.
+  This makes short (5-minute) settlement epochs practical today.
+- `publicDecrypt` proofs verified on-chain via `Nox.publicDecrypt` worked
+  first-try against the live NoxCompute — local-stack behaviour matched
+  production exactly, which is the highest compliment a test harness can get.
+
 ## Unresolved questions we'd love guidance on
 
-- Expected end-to-end latency budget on Sepolia between emitting compute events and
-  `publicDecrypt` availability (drives our keeper polling strategy and epoch length).
+- Is there a documented latency SLO for handle resolution on public testnets
+  (p50/p99)? Our observed p50 was seconds, but keepers need a budget to size
+  polling and epoch cadence.
 - Gas cost model per NoxCompute op — is there a table? We calibrate
   `maxIntentsPerEpoch` empirically from local-stack measurements, but published
   numbers per primitive would let teams size batches analytically.

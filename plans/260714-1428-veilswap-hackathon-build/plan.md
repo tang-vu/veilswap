@@ -47,7 +47,7 @@ amounts, minOut, balances, who-traded-what. k-anonymity ∝ intents/epoch.
 | 2 | [Keeper settlement service](phase-02-keeper-settlement-service.md) | ✅ done — typechecked; live run pending deployment |
 | 3 | [Frontend dark-pool app](phase-03-frontend-dark-pool-app.md) | ✅ code-complete — builds clean; visual pass pending deployed contracts |
 | 4 | [Docs + feedback.md](phase-04-docs-and-feedback.md) | ✅ drafted — README/ARCHITECTURE/DEMO_SCRIPT/feedback written; tx hashes pending E2E |
-| 5 | [Sepolia deploy + E2E rehearsal](phase-05-deploy-and-e2e-rehearsal.md) | ⏳ BLOCKED on user: funded Sepolia key(s) + Etherscan API key |
+| 5 | [Sepolia deploy + E2E rehearsal](phase-05-deploy-and-e2e-rehearsal.md) | ✅ done 2026-07-16 — pair `0x814Cb2265c7508269501325E2BEDFD76E79D3ff6` verified; full demo flow executed on live Sepolia+Nox, all tx hashes in README. Lessons: slippageBps=300 for this volatile testnet pool (drift ~1.7%/5min); keeper gas = 2× estimate. First deployment `0x529da48b…D31f` (50bps) abandoned — its epoch #2 escrows (0.01 WETH + 100 USDC) recoverable via cancelEpoch after grace. |
 
 ## Build notes (2026-07-14)
 

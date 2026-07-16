@@ -177,13 +177,27 @@ shares, so `Σ payouts ≤ totalOut` always holds.
   [Nox protocol](https://docs.noxprotocol.io/protocol/global-architecture-overview).
 - **Uniswap V3**: used unmodified as the public liquidity venue.
 
-## Gas profile (local stack, 2-intent epoch)
+## Gas profile (live Sepolia, 2-intent epoch)
 
-| Tx | Gas |
+| Tx | Gas (measured) |
 |---|---|
-| `submitIntent` | ~575k |
-| `lockEpoch` | ~1.09M (≈ 0.5M per intent) |
-| `settleEpoch` | ~709k |
+| `deposit` | ~167k |
+| `submitIntent` | ~528k |
+| `lockEpoch` | ~980k (≈ 0.5M per intent) |
+| `settleEpoch` (incl. the Uniswap swap) | ~698k |
+| `confidentialTransfer` | ~210k |
+| `requestWithdraw` / `finalizeWithdraw` | ~240k / ~73k |
 
-`maxIntentsPerEpoch = 8` keeps `lockEpoch` around ~4.3M gas — comfortable on
+`maxIntentsPerEpoch = 8` keeps `lockEpoch` around ~4M gas — comfortable on
 Sepolia. Raising it is a deploy-time parameter.
+
+### Parameter tuning per venue
+
+`slippageBps` bounds both intent eligibility and the residual swap's
+`amountOutMinimum` against the lock-time price. The Sepolia WETH/USDC pool was
+observed drifting ~1.7% within a single 5-minute epoch, so the demo deployment
+uses 300 bps; a mainnet deployment against a deep pool would use 30–50 bps.
+The exactness guarantees are identical — only the tolerance band changes.
+Operationally, keeper transactions should carry ~2× the estimated gas: the
+Uniswap leg's cost shifts with pool state between estimation and inclusion
+(we observed a settlement OOG at the estimated limit on a drifting pool).

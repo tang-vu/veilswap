@@ -95,7 +95,7 @@ pnpm keeper:watch      # or keeper:once / the GitHub Action cron (.github/workfl
 
 | Contract | Address |
 |---|---|
-| VeilSwapPair | _pending deployment_ |
+| VeilSwapPair (verified) | [`0x814Cb2265c7508269501325E2BEDFD76E79D3ff6`](https://sepolia.etherscan.io/address/0x814Cb2265c7508269501325E2BEDFD76E79D3ff6#code) |
 | WETH | [`0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14`](https://sepolia.etherscan.io/address/0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14) |
 | USDC | [`0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238`](https://sepolia.etherscan.io/address/0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238) |
 | Uniswap V3 WETH/USDC 0.05% pool | [`0x3289680dd4d6c10bb19b899729cda5eef58aeff1`](https://sepolia.etherscan.io/address/0x3289680dd4d6c10bb19b899729cda5eef58aeff1) |
@@ -106,18 +106,27 @@ Machine-readable copy in [`deployments.json`](deployments.json).
 
 ## Demo walkthrough (real Sepolia transactions)
 
-Follows [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md) — hashes recorded from the
-end-to-end rehearsal:
+Follows [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md) — every hash below is a real
+Sepolia transaction from the end-to-end rehearsal (epoch #1 on the deployed
+pair). Alice sold 0.01 WETH, Bob sold 100 USDC: Bob's side was matched **fully
+internally** at the lock price; only the 0.00578 WETH residual ever touched the
+public market, in one aggregate swap. Alice's fill decrypted to 236.95 USDC,
+Bob's to exactly 0.004218864278420221 WETH.
 
 | Step | Tx |
 |---|---|
-| Alice deposits WETH | _pending E2E rehearsal_ |
-| Alice's encrypted intent (WETH→USDC) | _pending_ |
-| Bob's encrypted intent (USDC→WETH) | _pending_ |
-| Epoch lock (eligibility + encrypted sums) | _pending_ |
-| **Settlement — ONE aggregate Uniswap swap** | _pending_ |
-| Private transfer (hidden amount) | _pending_ |
-| Withdrawal to a fresh address | _pending_ |
+| Alice deposits 0.01 WETH ([approve](https://sepolia.etherscan.io/tx/0x232a65cbb64ff63679bb2bf0b69f1626f9a6914df11b6e40710c3f8e7650a9c0)) | [`0x6c58ed97…`](https://sepolia.etherscan.io/tx/0x6c58ed9760de3c6858640d1b95ef928a3d4ecd603d84aae063e5c349114ab967) |
+| Bob deposits 100 USDC ([approve](https://sepolia.etherscan.io/tx/0xd50aaf5d439a08e84f26dcc267e165dea6c24ab8651915f55e9f503d4dddec50)) | [`0xb8539dde…`](https://sepolia.etherscan.io/tx/0xb8539ddeb3f36729615da1d3eb99545ac59677341cf8ab5e9591a3f3bc78ba5a) |
+| Alice's encrypted intent (direction/size/limit all hidden) | [`0xd069454e…`](https://sepolia.etherscan.io/tx/0xd069454ed5bfceda467dc773c034f1c983d68e79d03278f6785ddaf2d380a297) |
+| Bob's encrypted intent (opposing side, indistinguishable) | [`0xddab4161…`](https://sepolia.etherscan.io/tx/0xddab4161faf5cb564627eebe5233380dfbe7098ba15c13cde2dbd1c7c28d41e8) |
+| Epoch lock — encrypted eligibility + side totals | [`0x138f457a…`](https://sepolia.etherscan.io/tx/0x138f457a640ef8c45c571db64380f533a28ba3653fbc3587585d098db648a423) |
+| **Settlement — ONE aggregate Uniswap swap (0.00578 WETH residual)** | [`0xbb521325…`](https://sepolia.etherscan.io/tx/0xbb521325a307589d3a6a3c870b986dc0652b2c6f1820167214e3a432d992d1a2) |
+| Private transfer Alice → Bob (amount hidden on-chain) | [`0x0bf9f01a…`](https://sepolia.etherscan.io/tx/0x0bf9f01a0ec77db392a5ba42ce4ff031882a410e8aba9031d0010779c59642a3) |
+| Withdrawal request to a fresh address | [`0x11210d67…`](https://sepolia.etherscan.io/tx/0x11210d67ec14e7f974f7e89401a65f2c530ea72c3ad078e29a2a330c53058250) |
+| Withdrawal finalized — [fresh address](https://sepolia.etherscan.io/address/0x867b5Ee47B88c26F59aFD0714D803f6df6D71582) holds the WETH, link severed | [`0x5fae443c…`](https://sepolia.etherscan.io/tx/0x5fae443c1a9fbe2990331020fe5b85b13a2c2eea5971182fcf4a76f3baaded05) |
+
+Reproduce it yourself: `pnpm tsx scripts/e2e-demo-rehearsal.ts` (needs the
+funded wallets from `.env`).
 
 ## Tests
 
