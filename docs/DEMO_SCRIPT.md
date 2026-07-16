@@ -48,7 +48,11 @@ recording right after an epoch opens.
 
 ### 2:00 — Settlement: the money shot
 
-*Keeper terminal visible; countdown hits zero; keeper locks then settles.*
+*Keeper terminal visible; countdown hits zero; keeper locks then settles.
+(Alternative shot: skip the terminal and click the dashboard's own
+"lock epoch" / "finalize settlement" buttons — settlement is permissionless
+and the browser fetches the TEE proofs itself. Pick whichever reads better
+on camera.)*
 
 > "The epoch closes. Inside the encrypted domain, Bob's 50 USDC is matched
 > directly against part of Alice's WETH — that volume never touches the public

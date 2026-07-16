@@ -84,9 +84,37 @@ export function EpochDashboard() {
           now={now}
         />
       )}
-      {epochId !== undefined && epochId > 1n && <LastSettlement epochId={epochId - 1n} />}
+      {epochId !== undefined && epochId > 1n && <LatestActiveSettlement currentEpochId={epochId} />}
     </div>
   );
+}
+
+/** Walks back through recent epochs to surface the latest settlement that
+ *  actually moved volume (empty rolls are skipped so the money shot — the
+ *  single aggregate swap — stays visible to visitors). */
+function LatestActiveSettlement({ currentEpochId }: { currentEpochId: bigint }) {
+  const publicClient = usePublicClient();
+  const { data: activeEpochId } = useQuery({
+    queryKey: ["latest-active-settlement", currentEpochId.toString()],
+    enabled: !!publicClient,
+    refetchInterval: 15000,
+    queryFn: async () => {
+      const lookback = 20n;
+      const first = currentEpochId > lookback ? currentEpochId - lookback : 1n;
+      for (let id = currentEpochId - 1n; id >= first; id--) {
+        const [sumAIn, sumBIn] = (await publicClient!.readContract({
+          address: PAIR_ADDRESS,
+          abi: PAIR_ABI,
+          functionName: "epochSettlement",
+          args: [id],
+        })) as readonly [bigint, bigint, boolean, bigint, bigint];
+        if (sumAIn > 0n || sumBIn > 0n) return id.toString();
+      }
+      return null;
+    },
+  });
+  if (!activeEpochId) return null;
+  return <LastSettlement epochId={BigInt(activeEpochId)} />;
 }
 
 function LastSettlement({ epochId }: { epochId: bigint }) {
