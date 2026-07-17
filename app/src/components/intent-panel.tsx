@@ -103,11 +103,11 @@ export function IntentPanel() {
   return (
     <div className="panel">
       <h2>Swap intent</h2>
-      <div className="direction-toggle" role="group" aria-label="direction">
-        <button className={`token-option ${sellAForB ? "active" : ""}`} onClick={() => setSellAForB(true)}>
+      <div className="segmented full" role="group" aria-label="direction">
+        <button className={`segment ${sellAForB ? "active" : ""}`} onClick={() => setSellAForB(true)}>
           {TOKEN_A.symbol} → {TOKEN_B.symbol}
         </button>
-        <button className={`token-option ${!sellAForB ? "active" : ""}`} onClick={() => setSellAForB(false)}>
+        <button className={`segment ${!sellAForB ? "active" : ""}`} onClick={() => setSellAForB(false)}>
           {TOKEN_B.symbol} → {TOKEN_A.symbol}
         </button>
       </div>

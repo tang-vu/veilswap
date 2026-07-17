@@ -23,18 +23,33 @@ export function HowItWorksPanel() {
           trail is severed.
         </li>
       </ol>
-      <div className="test-funds">
-        <span className="stat-label">test funds for judges</span>
+
+      <div className="divided-block">
+        <span className="label">don't take our word for it</span>
+        <p className="dim">
+          Flip the switch in the header to <strong style={{ color: "var(--encrypted)" }}>chain view</strong> —
+          the app re-renders showing only what a Sepolia observer can actually read. Encrypted fields
+          collapse to their raw Nox handle. Nothing is faked; those are the real handles.
+        </p>
+      </div>
+
+      <div className="divided-block">
+        <span className="label">test funds for judges</span>
         <p className="dim">
           Grab Sepolia ETH from any{" "}
-          <a className="etherscan-link" href="https://cloud.google.com/application/web3/faucet/ethereum/sepolia" target="_blank" rel="noreferrer">
+          <a
+            className="link"
+            href="https://cloud.google.com/application/web3/faucet/ethereum/sepolia"
+            target="_blank"
+            rel="noreferrer"
+          >
             faucet ↗
           </a>
           , then wrap it to WETH right inside the Deposit panel. Your first WETH→USDC fill gives you
           USDC to trade the other direction.
         </p>
         <a
-          className="etherscan-link"
+          className="link"
           href={`${ETHERSCAN_BASE}/address/${PAIR_ADDRESS}#code`}
           target="_blank"
           rel="noreferrer"

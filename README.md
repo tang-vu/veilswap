@@ -14,6 +14,17 @@ the real, unmodified Uniswap V3 pool on Ethereum Sepolia.
 Sepolia wallet; the app can wrap faucet ETH into WETH for you, and even lets you drive epoch
 settlement yourself (it's permissionless — the dashboard doubles as a keeper).
 
+### Don't trust the pitch — flip the switch
+
+The dashboard has one control that makes the whole claim falsifiable: **chain view**. Flip it and
+the app re-renders as an *observer*, showing only what an indexer can actually pull off Sepolia.
+Encrypted values collapse to their real Nox handle, and the observer's ledger decodes the pool's
+live event log — no wallet, no privileges, nothing redacted by the UI. The fields you'd want most
+simply aren't there: `IntentSubmitted` carries an epoch, an index and an address, and **no
+direction, no size, no limit**. What *is* legible is labelled as leakage the protocol admits to.
+
+![VeilSwap chain view — the observer's ledger](docs/assets/veilswap-chain-view.png)
+
 Observers see a contract trade with Uniswap once per epoch. They never see who
 traded, how much, or which way — and volume that nets internally never touches
 the public chain at all. Encrypted balances double as a private payment rail

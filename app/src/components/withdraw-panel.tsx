@@ -109,7 +109,7 @@ export function WithdrawPanel() {
         </div>
       )}
       {result && (
-        <a className="etherscan-link" href={`${ETHERSCAN_BASE}/tx/${result.txHash}`} target="_blank" rel="noreferrer">
+        <a className="link" href={`${ETHERSCAN_BASE}/tx/${result.txHash}`} target="_blank" rel="noreferrer">
           released {formatToken(result.amount, token)} {token.symbol} — view tx ↗
         </a>
       )}

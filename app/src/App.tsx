@@ -7,10 +7,14 @@ import { IntentPanel } from "./components/intent-panel";
 import { TransferPanel } from "./components/transfer-panel";
 import { WithdrawPanel } from "./components/withdraw-panel";
 import { HowItWorksPanel } from "./components/how-it-works-panel";
+import { ObserverLedger } from "./components/observer-ledger";
+import { VeilBanner } from "./veil/veil-toggle";
+import { useVeil } from "./veil/veil-context";
 import { PAIR_ADDRESS } from "./config/veilswap";
 
 export default function App() {
   const { isConnected } = useAccount();
+  const { chainView } = useVeil();
 
   if (!PAIR_ADDRESS) {
     return (
@@ -28,14 +32,18 @@ export default function App() {
   }
 
   return (
-    <div className="shell">
+    <div className={`shell${chainView ? " chain-view" : ""}`}>
       <AppHeader />
+      <VeilBanner />
       <main className="layout">
         <section className="column">
           <EpochDashboard />
           {isConnected ? <IntentPanel /> : <ConnectHint />}
         </section>
         <section className="column">
+          {/* In chain view the observer's ledger leads: it is the whole argument,
+              and unlike the wallet panels it needs no connection to be damning. */}
+          {chainView && <ObserverLedger />}
           {isConnected ? (
             <>
               <BalancesPanel />
@@ -44,15 +52,15 @@ export default function App() {
               <WithdrawPanel />
             </>
           ) : (
-            <HowItWorksPanel />
+            !chainView && <HowItWorksPanel />
           )}
         </section>
       </main>
       <footer className="footer">
         <span>
-          Every balance, direction, size and limit below is an encrypted Nox handle — the chain
-          only ever sees one aggregate swap per epoch.
+          balances · direction · size · limit — all encrypted Nox handles
         </span>
+        <span>one aggregate swap per epoch · ownerless · permissionless settlement</span>
       </footer>
     </div>
   );

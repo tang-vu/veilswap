@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-import { usePublicClient, useReadContract } from "wagmi";
-import { useQuery } from "@tanstack/react-query";
-import { parseAbiItem } from "viem";
-import deployments from "../config/deployments.json";
-import { ETHERSCAN_BASE, PAIR_ABI, PAIR_ADDRESS, TOKEN_A, TOKEN_B } from "../config/veilswap";
-import { formatCountdown, formatToken } from "../lib/format";
+import { useReadContract } from "wagmi";
+import { PAIR_ABI, PAIR_ADDRESS } from "../config/veilswap";
+import { formatCountdown } from "../lib/format";
 import { EpochActions } from "./epoch-actions";
+import { LatestActiveSettlement } from "./epoch-settlement";
 
 const PHASE_NAMES = ["—", "OPEN", "LOCKED", "SETTLED", "CANCELLED"] as const;
 
@@ -50,30 +48,49 @@ export function EpochDashboard() {
     bigint,
   ];
   const secondsLeft = Number(deadline) - now;
+  const phaseName = PHASE_NAMES[phase] ?? "—";
+  const isOpen = phase === 1;
+  const urgent = isOpen && secondsLeft <= 30 && secondsLeft > 0;
 
   return (
-    <div className="panel">
+    <div className="panel panel-hero">
       <div className="panel-title-row">
         <h2>Epoch #{epochId?.toString() ?? "…"}</h2>
-        <span className={`phase-chip phase-${PHASE_NAMES[phase] ?? "—"}`}>{PHASE_NAMES[phase] ?? "…"}</span>
+        <span className={`chip chip-dot phase-${phaseName}`}>{phaseName === "—" ? "…" : phaseName}</span>
       </div>
-      <div className="epoch-grid">
-        <div className="stat">
-          <span className="stat-label">next settlement</span>
-          <span className="stat-value mono">{phase === 1 ? formatCountdown(secondsLeft) : "—"}</span>
+
+      <div className="epoch-hero">
+        <span className={`epoch-countdown${urgent ? " urgent" : ""}`}>
+          {isOpen ? formatCountdown(secondsLeft) : "--:--"}
+        </span>
+        <div className="epoch-meta">
+          <span className="label">next settlement</span>
+          <span className="mono dim" style={{ fontSize: 12 }}>
+            {isOpen ? "batching intents" : "awaiting keeper"}
+          </span>
         </div>
+      </div>
+
+      <div className="stat-row">
         <div className="stat">
-          <span className="stat-label">pending intents</span>
+          <span className="label">intents in batch</span>
           <span className="stat-value mono">
             {intentCount.toString()}
             <span className="dim"> / {maxIntents?.toString() ?? "…"}</span>
           </span>
         </div>
         <div className="stat">
-          <span className="stat-label">contents visible on-chain</span>
-          <span className="stat-value">none — count only</span>
+          <span className="label">your anonymity set</span>
+          <span className="stat-value mono">
+            {intentCount > 0n ? `1 of ${intentCount.toString()}` : "—"}
+          </span>
+        </div>
+        <div className="stat">
+          <span className="label">visible on-chain</span>
+          <span className="stat-value sm">count only — no sizes, no sides</span>
         </div>
       </div>
+
       {epochId !== undefined && (
         <EpochActions
           epochId={epochId}
@@ -85,97 +102,6 @@ export function EpochDashboard() {
         />
       )}
       {epochId !== undefined && epochId > 1n && <LatestActiveSettlement currentEpochId={epochId} />}
-    </div>
-  );
-}
-
-/** Walks back through recent epochs to surface the latest settlement that
- *  actually moved volume (empty rolls are skipped so the money shot — the
- *  single aggregate swap — stays visible to visitors). */
-function LatestActiveSettlement({ currentEpochId }: { currentEpochId: bigint }) {
-  const publicClient = usePublicClient();
-  const { data: activeEpochId } = useQuery({
-    queryKey: ["latest-active-settlement", currentEpochId.toString()],
-    enabled: !!publicClient,
-    refetchInterval: 15000,
-    queryFn: async () => {
-      const lookback = 20n;
-      const first = currentEpochId > lookback ? currentEpochId - lookback : 1n;
-      for (let id = currentEpochId - 1n; id >= first; id--) {
-        const [sumAIn, sumBIn] = (await publicClient!.readContract({
-          address: PAIR_ADDRESS,
-          abi: PAIR_ABI,
-          functionName: "epochSettlement",
-          args: [id],
-        })) as readonly [bigint, bigint, boolean, bigint, bigint];
-        if (sumAIn > 0n || sumBIn > 0n) return id.toString();
-      }
-      return null;
-    },
-  });
-  if (!activeEpochId) return null;
-  return <LastSettlement epochId={BigInt(activeEpochId)} />;
-}
-
-function LastSettlement({ epochId }: { epochId: bigint }) {
-  const publicClient = usePublicClient();
-
-  const { data: settlement } = useReadContract({
-    address: PAIR_ADDRESS,
-    abi: PAIR_ABI,
-    functionName: "epochSettlement",
-    args: [epochId],
-    query: { refetchInterval: 15000 },
-  });
-
-  const { data: txHash } = useQuery({
-    queryKey: ["settlement-tx", epochId.toString()],
-    enabled: !!publicClient,
-    refetchInterval: 20000,
-    queryFn: async () => {
-      const logs = await publicClient!.getLogs({
-        address: PAIR_ADDRESS,
-        event: parseAbiItem(
-          "event EpochSettled(uint64 indexed epochId, uint256 sumAIn, uint256 sumBIn, bool sellAResidual, uint256 residualIn, uint256 uniswapAmountOut)"
-        ),
-        args: { epochId },
-        fromBlock: BigInt(deployments.deployedAtBlock || 0),
-      });
-      return logs.at(-1)?.transactionHash ?? null;
-    },
-  });
-
-  if (!settlement) return null;
-  const [sumAIn, sumBIn, sellAResidual, residualIn, uniswapOut] = settlement as readonly [
-    bigint,
-    bigint,
-    boolean,
-    bigint,
-    bigint,
-  ];
-  if (sumAIn === 0n && sumBIn === 0n && residualIn === 0n) return null;
-
-  const inToken = sellAResidual ? TOKEN_A : TOKEN_B;
-  const outToken = sellAResidual ? TOKEN_B : TOKEN_A;
-  const batched = `${formatToken(sumAIn, TOKEN_A)} ${TOKEN_A.symbol} ⇄ ${formatToken(sumBIn, TOKEN_B)} ${TOKEN_B.symbol}`;
-
-  return (
-    <div className="last-settlement">
-      <span className="stat-label">last settlement — epoch #{epochId.toString()}</span>
-      <p>
-        Batched <strong>{batched}</strong>, netted internally, and executed{" "}
-        <strong>
-          {residualIn === 0n
-            ? "ZERO public swaps (fully netted)"
-            : `ONE public swap: ${formatToken(residualIn, inToken)} ${inToken.symbol} → ${formatToken(uniswapOut, outToken)} ${outToken.symbol}`}
-        </strong>
-        .
-      </p>
-      {txHash && (
-        <a className="etherscan-link" href={`${ETHERSCAN_BASE}/tx/${txHash}`} target="_blank" rel="noreferrer">
-          view the single aggregate swap on Etherscan ↗
-        </a>
-      )}
     </div>
   );
 }

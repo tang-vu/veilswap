@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { wagmiConfig } from "./config/wagmi";
+import { VeilProvider } from "./veil/veil-context";
 import App from "./App";
 import "./styles.css";
 
@@ -16,13 +17,15 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
           theme={darkTheme({
-            accentColor: "#7df9c6",
-            accentColorForeground: "#08090c",
+            accentColor: "#5ef2c0",
+            accentColorForeground: "#04231a",
             borderRadius: "small",
             overlayBlur: "small",
           })}
         >
-          <App />
+          <VeilProvider>
+            <App />
+          </VeilProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

@@ -1,0 +1,66 @@
+/* VeilSwap design tokens.
+ *
+ * The palette is semantic, not decorative: violet always means "encrypted /
+ * hidden from the chain", green always means "revealed / plaintext, yours".
+ * Every component honours that mapping so colour teaches the protocol. */
+
+:root {
+  /* --- surfaces: obsidian with a cold violet cast --- */
+  --bg: #06070b;
+  --bg-sunken: #040508;
+  --bg-raised: #0c0e15;
+  --bg-panel: rgba(15, 18, 27, 0.66);
+  --bg-panel-solid: #0f121b;
+
+  /* --- borders: hairlines + the lit top edge that makes panels feel milled --- */
+  --border: rgba(150, 160, 195, 0.12);
+  --border-strong: rgba(150, 160, 195, 0.26);
+  --edge-light: rgba(190, 205, 255, 0.09);
+
+  /* --- text --- */
+  --text: #dce0ea;
+  --text-bright: #f4f6fb;
+  --dim: #7b8496;
+  --dimmer: #565e70;
+
+  /* --- semantic protocol colours --- */
+  --revealed: #5ef2c0; /* plaintext, decrypted, yours */
+  --revealed-soft: rgba(94, 242, 192, 0.12);
+  --revealed-line: rgba(94, 242, 192, 0.4);
+  --encrypted: #9a8bff; /* ciphertext, handles, hidden */
+  --encrypted-soft: rgba(154, 139, 255, 0.12);
+  --encrypted-line: rgba(154, 139, 255, 0.42);
+  --locked: #f4d47c; /* epoch locked / in-flight */
+  --danger: #ff8080;
+
+  /* aliases kept so older rules read naturally */
+  --accent: var(--revealed);
+  --accent-2: var(--encrypted);
+
+  /* --- type --- */
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", Menlo, monospace;
+  --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --fs-display: clamp(38px, 6vw, 56px);
+  --fs-hero: clamp(28px, 4vw, 38px);
+  --fs-h1: 21px;
+  --fs-body: 15px;
+  --fs-small: 13px;
+  --fs-label: 10.5px;
+
+  /* --- shape + depth --- */
+  --r-sm: 7px;
+  --r-md: 11px;
+  --r-lg: 16px;
+  --shadow-panel:
+    0 1px 0 0 var(--edge-light) inset,
+    0 18px 44px -22px rgba(0, 0, 0, 0.9);
+  --shadow-lift:
+    0 1px 0 0 var(--edge-light) inset,
+    0 26px 60px -24px rgba(0, 0, 0, 0.95);
+
+  /* --- motion --- */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --fast: 130ms;
+  --med: 260ms;
+}

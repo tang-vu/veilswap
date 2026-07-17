@@ -1,4 +1,5 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { VeilToggle } from "../veil/veil-toggle";
 
 export function AppHeader() {
   return (
@@ -8,7 +9,7 @@ export function AppHeader() {
           <path
             d="M14 18 L32 50 L50 18"
             fill="none"
-            stroke="var(--accent)"
+            stroke="var(--revealed)"
             strokeWidth="6"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -16,7 +17,7 @@ export function AppHeader() {
           <path
             d="M22 18 L32 36 L42 18"
             fill="none"
-            stroke="var(--accent-2)"
+            stroke="var(--encrypted)"
             strokeWidth="4"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -28,7 +29,10 @@ export function AppHeader() {
           <p className="tagline">encrypted intents · internal netting · one public swap per epoch</p>
         </div>
       </div>
-      <ConnectButton showBalance={false} accountStatus="address" chainStatus="icon" />
+      <div className="header-right">
+        <VeilToggle />
+        <ConnectButton showBalance={false} accountStatus="address" chainStatus="icon" />
+      </div>
     </header>
   );
 }

@@ -134,7 +134,7 @@ export function DepositPanel() {
         </button>
       )}
       {txHash && status === "success" && (
-        <a className="etherscan-link" href={`${ETHERSCAN_BASE}/tx/${txHash}`} target="_blank" rel="noreferrer">
+        <a className="link" href={`${ETHERSCAN_BASE}/tx/${txHash}`} target="_blank" rel="noreferrer">
           deposited — view tx ↗
         </a>
       )}
