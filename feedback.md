@@ -25,38 +25,46 @@ Sepolia). Ordered roughly by impact. Updated incrementally throughout the build.
 
 ## Friction encountered (with suggested fixes)
 
-1. **Stale entry-point URLs.** `docs.iex.ec/nox-protocol/...` 308-redirects to
+1. **The Hello World tutorial pins the wrong compiler and blocks its own first
+   step.** The page says "compile with Solidity 0.8.27+" and ships `pragma
+   solidity ^0.8.27`, but `Nox.sol`, `INoxCompute.sol`, `HandleUtils.sol` and
+   `TypeUtils.sol` all declare `^0.8.35`. Any Remix compiler in 0.8.27–0.8.34
+   dies with four `ParserError: Source file requires different compiler
+   version` before you can deploy a line. This is the mandatory on-ramp for the
+   hackathon, so every participant hits it. → Say "0.8.35+" on the page, bump
+   the snippet pragma, and pin the compiler in the "Open in Remix" link.
+2. **Stale entry-point URLs.** `docs.iex.ec/nox-protocol/...` 308-redirects to
    `docs.noxprotocol.io`, and the `iExec-Nox/nox-hardhat-starter` repo referenced in
    early materials does not exist (404). The actual starter lives at
    `nox-hardhat-plugin/packages/example-project`. → Publish a real starter repo or fix
    the references; a 404 on the very first clone is a rough opening.
-2. **The Networks page data is invisible to non-browser clients.** The chain table
+3. **The Networks page data is invisible to non-browser clients.** The chain table
    (NoxCompute addresses, RPCs, faucets) is client-rendered, so it is absent from
    `networks.md` and `llms-full.txt`. We had to recover the Sepolia address from code
    comments in the JS-SDK examples and `Nox.sol` itself. → Render the table as static
    markdown; it is the single most important page for wiring a dApp.
-3. **`nox-protocol-contracts` cannot be cloned on Windows** — filenames under
+4. **`nox-protocol-contracts` cannot be cloned on Windows** — filenames under
    `ignition/deployments/*/build-info/` exceed MAX_PATH, so checkout fails
    (`Filename too long`). → Shorten artifact names or drop deployment build-info from
    the repo.
-4. **No boolean combinators on `ebool`** (`and`/`or`/`not`). Composing conditions
+5. **No boolean combinators on `ebool`** (`and`/`or`/`not`). Composing conditions
    (e.g. "direction AND sufficient balance") forces nested `select` chains that cost
    an extra op each and read poorly. → `Nox.and(ebool, ebool)` would remove a whole
    class of awkwardness.
-5. **No `eaddress` type.** Our private-transfer counterparties are necessarily public
+6. **No `eaddress` type.** Our private-transfer counterparties are necessarily public
    calldata; several designs (hidden recipients, stealth intents) are blocked on this.
-6. **No `select` overload for `ebool` values** — you cannot pick between two encrypted
+7. **No `select` overload for `ebool` values** — you cannot pick between two encrypted
    booleans, only between numeric types, which pushes flag logic into `euint256` 0/1
    representations.
-7. **pnpm 11's build-script gate isn't documented in the setup guide.** First
+8. **pnpm 11's build-script gate isn't documented in the setup guide.** First
    `hardhat test` after install fails until `esbuild` is allow-listed
    (`allowBuilds` in `pnpm-workspace.yaml`). One sentence in the Hardhat guide would
    save the churn (the guide recommends pnpm).
-8. **`Stack too deep` arrives fast.** A loop doing ~14 Nox ops per iteration (netting
+9. **`Stack too deep` arrives fast.** A loop doing ~14 Nox ops per iteration (netting
    eligibility) blew the stack immediately; `viaIR: true` is effectively mandatory for
    non-trivial confidential contracts. → Mention it in the Hardhat guide's config
    snippet.
-9. **Input proofs are owner-bound, but nothing documents it — and the viem
+10. **Input proofs are owner-bound, but nothing documents it — and the viem
    adapter picks the wrong owner on multi-account providers.** `encryptInput`
    sends `owner = getAddresses()[0]` (`ViemBlockchainService`), while the EIP-712
    request is signed with `walletClient.account`. Against a Hardhat node,
@@ -69,7 +77,7 @@ Sepolia). Ordered roughly by impact. Updated incrementally throughout the build.
    on the `encryptInput`/`fromExternal` pages, and export the NoxCompute error
    ABI so clients can decode reverts. Workaround we ship: wrap the wallet so
    `getAddresses()` returns only the bound account.
-10. **`@iexec-nox/handle` hard-requires `ethers` even for viem-only apps.** The
+11. **`@iexec-nox/handle` hard-requires `ethers` even for viem-only apps.** The
     package index re-exports `createEthersHandleClient`, so bundlers must
     resolve `ethers` no matter which factory you use. In a Vite app without
     ethers installed this fails *silently*: the module graph never evaluates,
@@ -77,7 +85,7 @@ Sepolia). Ordered roughly by impact. Updated incrementally throughout the build.
     (the failure only surfaces when dynamically importing the module by hand).
     → Make the ethers/viem factories subpath exports (`@iexec-nox/handle/viem`)
     or lazy-import them, so each wallet stack only pulls its own peer.
-11. **Handle branded types vs raw `bytes32`.** Contract views return handles as plain
+12. **Handle branded types vs raw `bytes32`.** Contract views return handles as plain
    hex through viem, but SDK methods want `Handle<T>` branded types — every read→decrypt
    round-trip needs an `as` cast. → Export a `toHandle<T>(hex)` helper from
    `@iexec-nox/handle`.
