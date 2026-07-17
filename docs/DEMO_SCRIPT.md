@@ -40,13 +40,30 @@ recording right after an epoch opens.
   status line: *encrypting via TEE gateway… → submitted*.
 - Bob: intent **USDC → WETH**, 50 USDC, suggested minOut.
 
-*Open one submitIntent tx on Etherscan; show the calldata.*
+### 1:30 — Flip the switch (the proof)
 
-> "On-chain this intent is three encrypted handles. Direction, amount, limit —
-> all hidden. Even which of these two is buying and which is selling is
-> secret. The dashboard shows a count: two intents. Nothing else."
+*The one beat that must land. Hit **chain view** in the header.*
 
-### 2:00 — Settlement: the money shot
+> "Don't take my word for any of this. This switch re-renders the app as an
+> observer — not a mockup, not a redaction. It shows only what an indexer can
+> actually pull off Sepolia right now."
+
+*Balances collapse to violet handles; the decrypt buttons become "no key".
+Scroll to the observer's ledger on the right.*
+
+> "Here is the pool's real event log, decoded live. Alice's intent:
+> `IntentSubmitted`, epoch, index, her address — and that's the entire event.
+> No direction. No size. No limit. Bob's is identical in shape, so you can't
+> even tell which of them is buying."
+
+*Point at the `Deposited` row, still legible.*
+
+> "And where we do leak, we say so. Deposit amounts are public — it's labelled
+> right there, and it's in the threat model. That's the honest boundary."
+
+*Flip back to **your view**: the handles resolve to real numbers.*
+
+### 2:15 — Settlement: the money shot
 
 *Keeper terminal visible; countdown hits zero; keeper locks then settles.
 (Alternative shot: skip the terminal and click the dashboard's own
@@ -57,6 +74,10 @@ on camera.)*
 > "The epoch closes. Inside the encrypted domain, Bob's 50 USDC is matched
 > directly against part of Alice's WETH — that volume never touches the public
 > market. Only the leftover goes to Uniswap."
+
+*The netting diagram redraws with the epoch's real numbers: two violet flows
+in, the rotor showing the % matched internally, one green residual leaving the
+veil. If the epoch nets out fully, the Uniswap leg goes dark — say so.*
 
 *Open the settleEpoch tx on Etherscan. Zoom on the token-transfer trace.*
 
@@ -97,6 +118,9 @@ from the VeilSwap contract.*
 - [ ] Epoch just opened (≥ 4 min of runway) and 0 pending intents
 - [ ] Etherscan tabs: pair address, pool address, (later) settle tx
 - [ ] App decrypt buttons tested once off-camera (gateway warm)
+- [ ] Chain view flipped once off-camera so the ledger's log query is cached —
+      it walks the full event history and is slow on a cold public RPC
+- [ ] Left in **your view** before recording starts
 
 ## Timing risks
 
