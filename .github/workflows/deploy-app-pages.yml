@@ -34,6 +34,11 @@ jobs:
         working-directory: app
       - run: pnpm build
         working-directory: app
+        env:
+          # A repository *variable*, not a secret: Vite inlines VITE_* at build
+          # time, so this string ships inside the public JS bundle either way.
+          # WalletConnect treats it as a public client identifier.
+          VITE_WALLETCONNECT_PROJECT_ID: ${{ vars.VITE_WALLETCONNECT_PROJECT_ID }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

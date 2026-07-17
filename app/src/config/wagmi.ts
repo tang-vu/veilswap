@@ -4,12 +4,20 @@ import { http } from "wagmi";
 
 /**
  * WalletConnect projectId is optional for the demo: injected wallets (MetaMask,
- * Rabby…) work without it. Set VITE_WALLETCONNECT_PROJECT_ID to enable
- * WalletConnect QR flows.
+ * Rabby…) work without it, though WalletConnect's own config/telemetry calls
+ * will 4xx in the console and mobile QR pairing stays unavailable. Set
+ * VITE_WALLETCONNECT_PROJECT_ID to enable WalletConnect QR flows.
+ *
+ * Trimmed truthiness rather than ??: CI passes an unset repository variable
+ * through as an empty string, which is not null and would otherwise sail past
+ * the fallback and leave projectId blank.
  */
+const walletConnectProjectId =
+  (import.meta.env.VITE_WALLETCONNECT_PROJECT_ID as string | undefined)?.trim() || "veilswap-local-demo";
+
 export const wagmiConfig = getDefaultConfig({
   appName: "VeilSwap",
-  projectId: (import.meta.env.VITE_WALLETCONNECT_PROJECT_ID as string | undefined) ?? "veilswap-local-demo",
+  projectId: walletConnectProjectId,
   chains: [sepolia],
   transports: {
     // drpc: free tier supports the eth_getLogs range queries the dashboard
