@@ -1,0 +1,143 @@
+/* Epoch netting diagram: the protocol drawn as flow.
+ *
+ * Violet strokes are still encrypted; green strokes are public or internally
+ * matched. Geometry lives in the component, colour and motion live here. */
+
+.netting {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px dashed var(--border);
+  padding-top: 14px;
+}
+
+.netting-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.flow-track {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 1.5;
+}
+
+.flow-live {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 5 9;
+  animation: flow 1.4s linear infinite;
+}
+
+@keyframes flow {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
+/* Inbound intents are still encrypted → violet. */
+.flow-in {
+  stroke: var(--encrypted);
+  filter: drop-shadow(0 0 5px rgba(154, 139, 255, 0.6));
+}
+
+/* Volume matched inside the pool: never reaches the chain. Green + a slower
+ * loop so the eye reads it as recirculation rather than exit. */
+.flow-internal {
+  stroke: var(--revealed);
+  filter: drop-shadow(0 0 6px rgba(94, 242, 192, 0.7));
+  animation-duration: 2.1s;
+}
+
+/* The one public leg. */
+.flow-residual {
+  stroke: var(--revealed);
+  filter: drop-shadow(0 0 6px rgba(94, 242, 192, 0.55));
+}
+
+.node-box {
+  fill: var(--bg-raised);
+  stroke: var(--border-strong);
+  stroke-width: 1;
+}
+
+.node-box.encrypted {
+  stroke: var(--encrypted-line);
+}
+
+.node-box.public {
+  stroke: var(--revealed-line);
+}
+
+.node-text {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  fill: var(--text-bright);
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.node-sub {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  fill: var(--dim);
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+/* Zone captions sit at the diagram's outer edges. These need their own classes:
+ * a CSS text-anchor always beats a textAnchor attribute, so reusing .node-sub
+ * would re-centre them and push the text outside the panel. */
+.zone-label {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  fill: var(--dimmer);
+  dominant-baseline: middle;
+}
+
+.zone-label.start {
+  text-anchor: start;
+}
+
+.zone-label.end {
+  text-anchor: end;
+}
+
+.veil-band {
+  fill: url(#veilGradient);
+  opacity: 0.5;
+}
+
+.edge-label {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.07em;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.edge-label.internal {
+  fill: var(--revealed);
+}
+
+.edge-label.hidden-label {
+  fill: var(--encrypted);
+}
+
+.netting-caption {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  text-align: center;
+}
+
+.netting-caption strong {
+  color: var(--revealed);
+  font-weight: 500;
+}
