@@ -10,6 +10,10 @@ the real, unmodified Uniswap V3 pool on Ethereum Sepolia.
 
 ![VeilSwap dashboard](docs/assets/veilswap-dashboard.png)
 
+**Watch the demo (2 min): [youtu.be/NQwBM2qSafI](https://youtu.be/NQwBM2qSafI)** — recorded straight
+against the live deployment. Every figure on screen is real Sepolia state, including the netted
+percentage and the settled residual.
+
 **Try it live: [tang-vu.github.io/veilswap](https://tang-vu.github.io/veilswap/)** — connect any
 Sepolia wallet; the app can wrap faucet ETH into WETH for you, and even lets you drive epoch
 settlement yourself (it's permissionless — the dashboard doubles as a keeper).
