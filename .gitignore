@@ -16,6 +16,10 @@ dist/
 app/dist/
 app/node_modules/
 
+# Rendered demo video + its narration/caption sources. Kept out of git by
+# default because they are large binaries; host the mp4 rather than commit it.
+demo-video/
+
 # Editor/OS noise
 .DS_Store
 Thumbs.db
