@@ -3,3 +3,12 @@ allowBuilds:
   bufferutil: true
   keccak: true
   utf-8-validate: true
+
+overrides:
+  # RainbowKit draws its WalletConnect QR through cuer, which calls qr with
+  # border:0 while depending on the wide range "qr": "~0". qr@0.6.0 began
+  # rejecting border<=0, so an unpinned install throws "invalid border=0" and
+  # unmounts the whole React tree the instant the QR renders — clicking
+  # WalletConnect blanks the page. 0.5.5 is the last release accepting border:0.
+  # Drop this pin once cuer fixes the call or tightens its range.
+  qr: 0.5.5

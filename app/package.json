@@ -24,5 +24,6 @@
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "~5.8.0",
     "vite": "^6.0.0"
-  }
+  },
+  "//": "The qr pin lives in pnpm-workspace.yaml (pnpm 11 no longer reads the package.json pnpm field). See the comment there."
 }
